@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Create sample.txt file
+      copy:
+        content: |
+          Hello world
+        dest: /etc/sample.txt
