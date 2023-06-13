@@ -38,7 +38,7 @@ output  "rhel7_public_ip" {
 
 
 resource "aws_instance" "MediaWiki" {
-  ami                    = "ami-002070d43b0a4f171" # Centos 7 AMI ID
+  ami                    = "ami-0fc522222ab74a244" # RHEL 8 AMI ID
   instance_type          = "t2.micro"
   key_name               = "rhel7_server"
   vpc_security_group_ids = [aws_security_group.MediaWiki-SG.id]
