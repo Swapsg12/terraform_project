@@ -1,5 +1,7 @@
 - name: Running MediaWiki on Red Hat Linux
   hosts: localhost
+  vars_files:
+    - secret.yaml
   become: yes
 
   tasks:
