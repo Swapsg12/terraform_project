@@ -24,21 +24,21 @@
         input: |
           Enter
           Y
-          Pass@123
-          Pass@123
+          {{ mysql_root_password }}
+          {{ mysql_root_password }}
           Y
           Y
           Y
           Y
 
     - name: Create MySQL user and database
-      command: mysql -u root -pPass@123 -e "CREATE USER 'wiki'@'localhost' IDENTIFIED BY 'Pass@12345'; CREATE DATABASE wikidatabase; GRANT ALL PRIVILEGES ON wikidatabase.* TO 'wiki'@'localhost'; FLUSH PRIVILEGES;"
+      command: mysql -u root -p{{ mysql_root_password }} -e "CREATE USER 'wiki'@'localhost' IDENTIFIED BY '{{ mysql_wiki_password }}'; CREATE DATABASE wikidatabase; GRANT ALL PRIVILEGES ON wikidatabase.* TO 'wiki'@'localhost'; FLUSH PRIVILEGES;"
 
     - name: Show databases
-      command: mysql -u root -pPass@123 -e "SHOW DATABASES;"
+      command: mysql -u root -p{{ mysql_root_password }} -e "SHOW DATABASES;"
 
     - name: Show grants for 'wiki'@'localhost'
-      command: mysql -u root -pPass@123 -e "SHOW GRANTS FOR 'wiki'@'localhost';"
+      command: mysql -u root -p{{ mysql_root_password }} -e "SHOW GRANTS FOR 'wiki'@'localhost';"
 
     - name: Enable MariaDB service autostart
       service:
