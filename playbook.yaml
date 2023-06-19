@@ -1,9 +1,138 @@
----
-- hosts: all
-  become: true
+- name: Running MediaWiki on Red Hat Linux
+  hosts: localhost
+  become: yes
+
   tasks:
-    - name: Create sample.txt file
-      copy:
-        content: |
-          Hello world
-        dest: /etc/sample.txt
+    - name: Reset PHP module
+      command: dnf module reset php
+
+    - name: Enable PHP 7.4 module
+      command: dnf module enable php:7.4
+
+    - name: Installing required packages
+      command: dnf install -y httpd php php-mysqlnd php-gd php-xml mariadb-server mariadb php-mbstring php-json mod_ssl php-intl php-apcu
+
+    - name: Starting MariaDB service
+      service:
+        name: mariadb
+        state: started
+
+    - name: Database (MySQL) post-install configuration
+      command: mysql_secure_installation
+      args:
+        creates: /root/.my.cnf
+        input: |
+          Enter
+          Y
+          Pass@123
+          Pass@123
+          Y
+          Y
+          Y
+          Y
+
+    - name: Create MySQL user and database
+      command: mysql -u root -pPass@123 -e "CREATE USER 'wiki'@'localhost' IDENTIFIED BY 'Pass@12345'; CREATE DATABASE wikidatabase; GRANT ALL PRIVILEGES ON wikidatabase.* TO 'wiki'@'localhost'; FLUSH PRIVILEGES;"
+
+    - name: Show databases
+      command: mysql -u root -pPass@123 -e "SHOW DATABASES;"
+
+    - name: Show grants for 'wiki'@'localhost'
+      command: mysql -u root -pPass@123 -e "SHOW GRANTS FOR 'wiki'@'localhost';"
+
+    - name: Enable MariaDB service autostart
+      service:
+        name: mariadb
+        enabled: yes
+
+    - name: Enable Apache HTTPD service autostart
+      service:
+        name: httpd
+        enabled: yes
+
+    - name: Downloading and installing wikimedia
+      command: |
+        cd /home/apache
+        wget https://releases.wikimedia.org/mediawiki/1.39/mediawiki-1.39.3.tar.gz
+        wget https://releases.wikimedia.org/mediawiki/1.39/mediawiki-1.39.3.tar.gz.sig
+        gpg --verify mediawiki-1.39.3.tar.gz.sig mediawiki-1.39.3.tar.gz
+
+        cd /var/www
+        tar -zxf /home/username/mediawiki-1.39.3.tar.gz
+        ln -s mediawiki-1.39.3/ mediawiki
+
+   - name: changing configuration file
+      replace:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: 'DocumentRoot "/var/www"'
+        replace: 'DocumentRoot "/var/www/mediawiki"'
+
+    - name: changing configuration file
+      replace:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '<Directory "/var/www">'
+        replace: '<Directory "/var/www/mediawiki">'
+
+    - name: changing configuration file
+      replace:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: 'DirectoryIndex index.html index.html.var index.php'
+        replace: 'DirectoryIndex index.php'
+
+    - name: Changing ownership
+      command: chown -R apache:apache /var/www/mediawiki-1.39.3
+
+    - name: Creating sym link
+      file:
+        src: /var/www/mediawiki-1.39.3
+        dest: /var/www/mediawiki
+        state: link
+
+    - name: Restart httpd service
+      service:
+        name: httpd
+        state: restarted
+
+    - name: Installing firewalld
+      command: yum install -y firewalld
+
+    - name: Restarting firewalld service
+      service:
+        name: firewalld
+        state: restarted
+
+    - name: Enabling firewalld service to restart if after reboot/restart of server
+      service:
+        name: firewalld
+        enabled: yes
+
+    - name: rules for HTTP and HTTPS
+      command: firewall-cmd --permanent --zone=public --add-service={{ item }}
+      loop:
+        - http
+        - https
+
+    - name: Restart firewalld service
+      service:
+        name: firewalld
+        state: restarted
+
+    - name: SELinux permissive
+      replace:
+        path: /etc/selinux/config
+        regexp: 'SELINUX=enforcing'
+        replace: 'SELINUX=permissive'
+
+    - name: Restoring SELinux
+      command: restorecon -FR /var/www/mediawiki-1.39.3/
+
+    - name: Restoring SELinux
+      command: restorecon -FR /var/www/mediawiki
+
+    - name: Checking SELinux for /var/www/
+      command: ls -lZ /var/www/
+
+    - name: Restart Apache HTTPD service
+      service:
+        name: httpd
+        state: restarted
