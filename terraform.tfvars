@@ -1,2 +1,4 @@
-cred_access_key = "AKIA3C63C4MG23XL35FM"
-cred_secret_key = "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"
+#You will have to set/export access key as an environmental variable
+
+cred_access_key = var.Access_key
+cred_secret_key = var.Secret_key
