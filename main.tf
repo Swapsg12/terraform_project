@@ -69,6 +69,10 @@ resource "aws_instance" "MediaWiki" {
     source      = "F:\\DevOps Journey\\Learning\\Terraform_project\\playbook.yaml"
     destination = "/home/ec2-user/playbook.yaml"
   }
+   provisioner "file" {
+    source      = "F:\\DevOps Journey\\Learning\\Terraform_project\\secret.yaml"
+    destination = "/home/ec2-user/secret.yaml"
+  }
 
   provisioner "remote-exec" {
     inline = [
