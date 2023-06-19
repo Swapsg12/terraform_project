@@ -6,5 +6,5 @@
 4. playbook.yaml contains the ansible code to deploy mediawiki app and secret.yaml contains the password of root user for database and wiki user.
 5. to encrypt it as a vault you will need to run below command
 > ansible-vault encrypt secret.yaml 
-7. You can store the vault password in file named with .pass.yaml
+7. You can store the vault password in file named with .pass.yaml /.pass.txt
 9. rhel7_server.pem is key to create a instance
